@@ -15,5 +15,5 @@ class CommonVariables:
     ]
     MAX_LIMIT = 5000
 
-    ROOT_DIR = Path(__file__).parent.parent.parent
+    ROOT_DIR = Path(__file__).parent.parent.parent.parent
     JSONL_FILE_PATH = ROOT_DIR / "src" / "search_engine" / "models" / "PageModel.jsonl"
