@@ -31,8 +31,7 @@ def prepare_async_requests(urls: List[str], async_rest_client: httpx.AsyncClient
         logger.debug(f"Preparing request for URL: {url}")
         request = async_rest_client.build_request(
             "GET", 
-            url,
-            follow_redirects=True
+            url
         )
         requests.append(request)
 
