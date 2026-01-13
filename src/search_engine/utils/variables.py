@@ -4,6 +4,7 @@ This class will contain some common gobal variables used across the search engin
 
 from pathlib import Path
 
+
 class CommonVariables:
     """
     Initialize the variables module.

@@ -10,7 +10,7 @@ from src.search_engine.utils.loggers import get_logger
 logger = get_logger(__name__)
 
 
-def extract_outgoing_links(soup: BeautifulSoup) -> List[str]:
+def extract_outgoing_links_from_soup(soup: BeautifulSoup) -> List[str]:
     """
     This method will extract all the outgoing links from the given BeautifulSoup object.
 
@@ -27,7 +27,7 @@ def extract_outgoing_links(soup: BeautifulSoup) -> List[str]:
     return links
 
 
-def extract_headings(soup: BeautifulSoup) -> List[str]:
+def extract_headings_from_soup(soup: BeautifulSoup) -> List[str]:
     """
     This method will extract all the headings (h1-h6) from the given BeautifulSoup object.
 
@@ -44,7 +44,7 @@ def extract_headings(soup: BeautifulSoup) -> List[str]:
     return headings
 
 
-def extract_title(soup: BeautifulSoup) -> str:
+def extract_title_from_soup(soup: BeautifulSoup) -> str:
     """
     This method will extract the page title from the given BeautifulSoup object.
 
@@ -61,7 +61,7 @@ def extract_title(soup: BeautifulSoup) -> str:
     return title
 
 
-def extract_content(soup: BeautifulSoup) -> str:
+def extract_content_from_soup(soup: BeautifulSoup) -> str:
     """
     This method will extract the main text content from the given BeautifulSoup object.
 
