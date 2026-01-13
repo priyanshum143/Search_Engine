@@ -5,6 +5,10 @@ This file will contain the code to extaract useful information from the crawled 
 from typing import List
 from bs4 import BeautifulSoup
 
+from src.search_engine.utils.loggers import get_logger
+
+logger = get_logger(__name__)
+
 
 def extract_outgoing_links(soup: BeautifulSoup) -> List[str]:
     """
