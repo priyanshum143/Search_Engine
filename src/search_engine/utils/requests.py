@@ -11,7 +11,7 @@ from src.search_engine.utils.loggers import get_logger
 logger = get_logger(__name__)
 
 
-def prepare_async_requests(urls: List[str], async_rest_client: httpx.AsyncClient) -> List[httpx.Request]:
+def prepare_async_requests(urls: List[str], async_rest_client: httpx.AsyncClient = None) -> List[httpx.Request]:
     """
     This method will prepare asynchronous HTTP GET requests for a list of URLs.
 
@@ -22,6 +22,9 @@ def prepare_async_requests(urls: List[str], async_rest_client: httpx.AsyncClient
     Returns:
         List[httpx.Request]: A list of prepared HTTP GET requests.
     """
+
+    if async_rest_client is None:
+        async_rest_client = httpx.AsyncClient()
 
     requests = []
     for url in urls:
@@ -37,7 +40,7 @@ def prepare_async_requests(urls: List[str], async_rest_client: httpx.AsyncClient
     return requests
 
 
-async def hit_async_requests(requests: List[httpx.Request], async_rest_client: httpx.AsyncClient) -> List[httpx.Response]:
+async def hit_async_requests(requests: List[httpx.Request], async_rest_client: httpx.AsyncClient = None) -> List[httpx.Response]:
     """
     This method will send asynchronous HTTP requests and return their responses.
 
@@ -48,6 +51,9 @@ async def hit_async_requests(requests: List[httpx.Request], async_rest_client: h
     Returns:
         List[httpx.Response]: A list of HTTP responses.
     """
+
+    if async_rest_client is None:
+        async_rest_client = httpx.AsyncClient()
 
     logger.debug(f"Hitting {len(requests)} requests asynchronously: {requests}")
     tasks = [async_rest_client.send(req) for req in requests]

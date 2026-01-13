@@ -20,7 +20,7 @@ def normalize_url(url: str) -> str:
         str: The normalized URL.
     """
 
-    logger.info(f"Normalizing URL: {url}")
+    logger.debug(f"Normalizing URL: {url}")
 
     # Parse the URL into components
     parsed = urlparse(url.strip())
@@ -40,6 +40,6 @@ def normalize_url(url: str) -> str:
     
     # Reconstruct the URL without fragment
     normalized = urlunparse((scheme, netloc, path, parsed.params, query, fragment))
-    logger.info(f"Normalized URL: {normalized}")
+    logger.debug(f"Normalized URL: {normalized}")
     
     return normalized
