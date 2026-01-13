@@ -3,6 +3,7 @@ This file will contain some utility methods for string operations.
 """
 
 from urllib.parse import urlparse, urlunparse
+import hashlib
 
 from src.search_engine.utils.loggers import get_logger
 
@@ -42,3 +43,16 @@ def normalize_url(url: str) -> str:
     logger.debug(f"Normalized URL: {normalized}")
     
     return normalized
+
+
+def generate_content_hash(content: str) -> str:
+    """
+    Generate an SHA-256 hash of the content.
+
+    Args:
+        content (str): The content to hash.
+
+    Returns:
+        str: The hexadecimal hash string.
+    """
+    return hashlib.sha256(content.encode('utf-8')).hexdigest()
