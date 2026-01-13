@@ -4,6 +4,11 @@ This file will contain some utility methods for string operations.
 
 from urllib.parse import urlparse, urlunparse
 
+from src.search_engine.utils.loggers import get_logger
+
+logger = get_logger(__name__)
+
+
 
 def normalize_url(url: str) -> str:
     """
@@ -14,6 +19,8 @@ def normalize_url(url: str) -> str:
     Returns:
         str: The normalized URL.
     """
+
+    logger.info(f"Normalizing URL: {url}")
 
     # Parse the URL into components
     parsed = urlparse(url.strip())
@@ -33,5 +40,15 @@ def normalize_url(url: str) -> str:
     
     # Reconstruct the URL without fragment
     normalized = urlunparse((scheme, netloc, path, parsed.params, query, fragment))
+    logger.info(f"Normalized URL: {normalized}")
     
     return normalized
+
+def main():
+    url = "https://Example.com/SomePage/#section"
+    normalized_url = normalize_url(url)
+    print(f"Original URL: {url}")
+    print(f"Normalized URL: {normalized_url}")
+
+if __name__ == "__main__":
+    main()
