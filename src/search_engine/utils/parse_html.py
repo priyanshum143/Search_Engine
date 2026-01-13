@@ -21,6 +21,7 @@ def extract_outgoing_links(soup: BeautifulSoup) -> List[str]:
         List[str]: A list of outgoing links found in the HTML content.
     """
 
-    links = soup.find_all('a', href=True)
-    logger.debug(f"Found {len(links)} links in the HTML content: {links}")
+    link_tags = soup.find_all('a', href=True)
+    links = [link.get('href') for link in link_tags if link.get('href')]
+    logger.debug(f"Found {len(links)} links in the HTML content")
     return links
