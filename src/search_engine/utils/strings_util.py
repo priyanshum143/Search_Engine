@@ -43,12 +43,3 @@ def normalize_url(url: str) -> str:
     logger.info(f"Normalized URL: {normalized}")
     
     return normalized
-
-def main():
-    url = "https://Example.com/SomePage/#section"
-    normalized_url = normalize_url(url)
-    print(f"Original URL: {url}")
-    print(f"Normalized URL: {normalized_url}")
-
-if __name__ == "__main__":
-    main()
