@@ -2,7 +2,7 @@
 This class will contain some common gobal variables used across the search engine project.
 """
 
-def __init__():
+class CommonVariables:
     """
     Initialize the variables module.
     """
