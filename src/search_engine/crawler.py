@@ -27,8 +27,14 @@ class WebCrawler:
     """
     
     def __init__(self) -> None:
-        # Initalizing some variables which we will need for crawling
-        self.async_rest_client = httpx.AsyncClient(follow_redirects=True)
+        # Initialising some variables which we will need for crawling
+        self.async_rest_client = httpx.AsyncClient(
+            follow_redirects=True,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+            },
+            timeout=30.0
+        )
         self.visited_urls = set()
         self.urls_crawled = 0
 
