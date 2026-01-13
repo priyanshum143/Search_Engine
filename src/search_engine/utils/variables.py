@@ -14,6 +14,7 @@ class CommonVariables:
         "https://en.wikipedia.org/wiki/Main_Page",
     ]
     MAX_LIMIT = 100000000
+    BATCH_SIZE = 50
 
     ROOT_DIR = Path(__file__).parent.parent.parent.parent
     JSONL_FILE_PATH = ROOT_DIR / "src" / "search_engine" / "models" / "PageModel.jsonl"
