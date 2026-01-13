@@ -9,7 +9,6 @@ from src.search_engine.utils.loggers import get_logger
 logger = get_logger(__name__)
 
 
-
 def normalize_url(url: str) -> str:
     """
     Normalize a URL by removing trailing slashes and "#" and converting to lowercase.
