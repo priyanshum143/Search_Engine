@@ -13,7 +13,7 @@ class CommonVariables:
     SEED_URLS = [
         "https://en.wikipedia.org/wiki/Main_Page",
     ]
-    MAX_LIMIT = 5000
+    MAX_LIMIT = 100000000
 
     ROOT_DIR = Path(__file__).parent.parent.parent.parent
     JSONL_FILE_PATH = ROOT_DIR / "src" / "search_engine" / "models" / "PageModel.jsonl"
