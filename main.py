@@ -23,7 +23,7 @@ async def main():
     crawler_task = asyncio.create_task(crawler.start_crawler())
 
     try:
-        await asyncio.Future()
+        await crawler_task
     except (KeyboardInterrupt, asyncio.CancelledError):
         logger.info("Shutdown signal received...")
     finally:
