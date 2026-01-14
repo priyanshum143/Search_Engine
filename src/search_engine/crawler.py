@@ -139,7 +139,9 @@ class WebCrawler:
 
         # Parsing each response and making a PageModel for each response
         with open(CommonVariables.JSONL_FILE_PATH, 'a', encoding='utf-8') as f:
+            iterator = 0
             for response in responses:
+                logger.debug(f"Iterating response {iterator}/{len(responses)}")
                 # Checking the status code of the response
                 url = str(response.request.url)
                 if response.status_code != httpx.codes.OK:
@@ -177,6 +179,9 @@ class WebCrawler:
                 # Writing the data in JSONL file
                 f.write(json.dumps(asdict(page_model), ensure_ascii=False) + '\n')
                 f.flush()
+
+                # Increasing the iterator
+                iterator += 1
 
     async def start_crawler(self) -> None:
         """
