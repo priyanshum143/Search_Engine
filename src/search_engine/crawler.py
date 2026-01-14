@@ -125,10 +125,12 @@ class WebCrawler:
 
         # Log if we couldn't add all URLs
         if urls_to_add < urls_len:
-            logger.debug(f"Could not add {urls_len - urls_to_add} URLs due to queue capacity limit")
+            logger.debug(
+                f"Could not add {urls_len - urls_to_add} URLs due to queue capacity limit"
+            )
 
     async def _parse_response_and_make_page_model(
-            self, responses: List[httpx.Response]
+        self, responses: List[httpx.Response]
     ) -> None:
         """
         This method will parse the list of http responses and extract useful information
