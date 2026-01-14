@@ -7,6 +7,12 @@ on:
 jobs:
   black:
     runs-on: ubuntu-latest
+    # Grant permissions to write comments to the PR
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -14,6 +20,6 @@ jobs:
         uses: reviewdog/action-black@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          reporter: github-pr-review # This puts comments on the lines
+          reporter: github-pr-review
           fail_on_error: true
-          filter_mode: added # Only comment on lines changed in the PR
+          filter_mode: added
