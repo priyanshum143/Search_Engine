@@ -141,6 +141,10 @@ class WebCrawler:
         with open(CommonVariables.JSONL_FILE_PATH, 'a', encoding='utf-8') as f:
             iterator = 0
             for response in responses:
+                if not isinstance(response, httpx.Response):
+                    logger.debug(f"Skipping invalid response object: {type(response)}")
+                    continue
+
                 logger.debug(f"Iterating response {iterator}/{len(responses)}")
                 # Checking the status code of the response
                 url = str(response.request.url)
