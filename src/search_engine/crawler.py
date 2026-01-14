@@ -45,7 +45,9 @@ class WebCrawler:
 
         # Initializing URL frontier with seed URLs
         self.url_frontier = asyncio.Queue(maxsize=CommonVariables.MAX_LIMIT)
-        logger.debug(f"Initializing URL frontier with seed URLs: {CommonVariables.SEED_URLS}")
+        logger.debug(
+            f"Initializing URL frontier with seed URLs: {CommonVariables.SEED_URLS}"
+        )
         for url in CommonVariables.SEED_URLS:
             self.url_frontier.put_nowait(url)
 
@@ -117,13 +119,17 @@ class WebCrawler:
         logger.debug(
             f"Successfully added {added_count} new URLs to queue (skipped {urls_to_add - added_count} duplicates)"
         )
-        logger.debug(f"New queue size: {self.url_frontier.qsize()}/{CommonVariables.MAX_LIMIT}")
+        logger.debug(
+            f"New queue size: {self.url_frontier.qsize()}/{CommonVariables.MAX_LIMIT}"
+        )
 
         # Log if we couldn't add all URLs
         if urls_to_add < urls_len:
             logger.debug(f"Could not add {urls_len - urls_to_add} URLs due to queue capacity limit")
 
-    async def _parse_response_and_make_page_model(self, responses: List[httpx.Response]) -> None:
+    async def _parse_response_and_make_page_model(
+            self, responses: List[httpx.Response]
+    ) -> None:
         """
         This method will parse the list of http responses and extract useful information
         and will make a page model for each page
