@@ -1,8 +1,6 @@
 name: Black Format Check
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -10,15 +8,12 @@ jobs:
   black:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Check Black formatting with Reviewdog
+        uses: reviewdog/action-black@v3
         with:
-          python-version: '3.14'
-
-      - name: Install Black
-        run: pip install black
-
-      - name: Run Black Check
-        run: black --check --diff .
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review # This puts comments on the lines
+          fail_on_error: true
+          filter_mode: added # Only comment on lines changed in the PR
