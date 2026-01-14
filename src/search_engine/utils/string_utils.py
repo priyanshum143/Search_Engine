@@ -24,24 +24,24 @@ def normalize_url(url: str) -> str:
 
     # Parse the URL into components
     parsed = urlparse(url.strip())
-    
+
     # Normalize scheme and netloc to lowercase
     scheme = parsed.scheme.lower()
     netloc = parsed.netloc.lower()
-    
+
     # Normalize path: remove trailing slash (except for root "/")
-    path = parsed.path.rstrip('/') if parsed.path != '/' else '/'
-    
+    path = parsed.path.rstrip("/") if parsed.path != "/" else "/"
+
     # Keep query parameters as-is
     query = parsed.query
-    
+
     # Remove fragment (the "#" part)
-    fragment = ''
-    
+    fragment = ""
+
     # Reconstruct the URL without fragment
     normalized = urlunparse((scheme, netloc, path, parsed.params, query, fragment))
     logger.debug(f"Normalized URL: {normalized}")
-    
+
     return normalized
 
 
@@ -55,4 +55,4 @@ def generate_content_hash(content: str) -> str:
     Returns:
         str: The hexadecimal hash string.
     """
-    return hashlib.sha256(content.encode('utf-8')).hexdigest()
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()

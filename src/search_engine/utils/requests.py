@@ -11,7 +11,9 @@ from src.search_engine.utils.loggers import get_logger
 logger = get_logger(__name__)
 
 
-def prepare_async_requests(urls: List[str], async_rest_client: httpx.AsyncClient = None) -> List[httpx.Request]:
+def prepare_async_requests(
+    urls: List[str], async_rest_client: httpx.AsyncClient = None
+) -> List[httpx.Request]:
     """
     This method will prepare asynchronous HTTP GET requests for a list of URLs.
 
@@ -29,17 +31,16 @@ def prepare_async_requests(urls: List[str], async_rest_client: httpx.AsyncClient
     requests = []
     for url in urls:
         logger.debug(f"Preparing request for URL: {url}")
-        request = async_rest_client.build_request(
-            "GET", 
-            url
-        )
+        request = async_rest_client.build_request("GET", url)
         requests.append(request)
 
     logger.debug(f"Prepared {len(requests)} requests: {requests}")
     return requests
 
 
-async def hit_async_requests(requests: List[httpx.Request], async_rest_client: httpx.AsyncClient = None) -> List[httpx.Response]:
+async def hit_async_requests(
+    requests: List[httpx.Request], async_rest_client: httpx.AsyncClient = None
+) -> List[httpx.Response]:
     """
     This method will send asynchronous HTTP requests and return their responses.
 
