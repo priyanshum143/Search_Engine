@@ -30,7 +30,7 @@ class WebCrawler:
     """
     This class is responsible for crawling web pages.
     """
-    
+
     def __init__(self) -> None:
         # Initialising some variables which we will need for crawling
         self.async_rest_client = httpx.AsyncClient(
@@ -38,7 +38,7 @@ class WebCrawler:
             headers={
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
             },
-            timeout=30.0
+            timeout=30.0,
         )
         self.visited_urls = set()
         self.urls_crawled = 0
@@ -48,7 +48,7 @@ class WebCrawler:
         logger.debug(f"Initializing URL frontier with seed URLs: {CommonVariables.SEED_URLS}")
         for url in CommonVariables.SEED_URLS:
             self.url_frontier.put_nowait(url)
-    
+
     async def _fetch_pages_for_urls_and_return_response(self) -> List[httpx.Response]:
         """
         This method will fetch the web pages for the URLs in the URL frontier.
@@ -70,7 +70,6 @@ class WebCrawler:
                 logger.debug(f"URL: {url} has already been visited. Skipping.")
                 continue
             logger.debug(f"Picked up URL: {url} for crawling from the queue.")
-
 
             urls.append(url)
             self.visited_urls.add(url)
@@ -98,7 +97,9 @@ class WebCrawler:
             f"Attempting to add {len(urls)} URLs. Queue: {queue_size}/{CommonVariables.MAX_LIMIT}, Available: {available_space}"
         )
         if available_space <= 0:
-            logger.debug(f"Queue is full. Current size: {queue_size}, Max limit: {CommonVariables.MAX_LIMIT}")
+            logger.debug(
+                f"Queue is full. Current size: {queue_size}, Max limit: {CommonVariables.MAX_LIMIT}"
+            )
             return
 
         # Determine how many URLs we can add
@@ -126,7 +127,7 @@ class WebCrawler:
         """
         This method will parse the list of http responses and extract useful information
         and will make a page model for each page
-        
+
         Args:
             responses (List[httpx.Response]): List of HTTP responses to parse.
 
@@ -138,7 +139,7 @@ class WebCrawler:
         Path(CommonVariables.JSONL_FILE_PATH).parent.mkdir(parents=True, exist_ok=True)
 
         # Parsing each response and making a PageModel for each response
-        with open(CommonVariables.JSONL_FILE_PATH, 'a', encoding='utf-8') as f:
+        with open(CommonVariables.JSONL_FILE_PATH, "a", encoding="utf-8") as f:
             iterator = 0
             for response in responses:
                 if not isinstance(response, httpx.Response):
@@ -149,15 +150,17 @@ class WebCrawler:
                 # Checking the status code of the response
                 url = str(response.request.url)
                 if response.status_code != httpx.codes.OK:
-                    logger.debug(f"Status code for URL [{url}] is {response.status_code}\n content: {response.content}")
+                    logger.debug(
+                        f"Status code for URL [{url}] is {response.status_code}\n content: {response.content}"
+                    )
                     continue
 
                 # Creating a soup object based on content type
-                content_type = response.headers.get('Content-Type', '').lower()
-                if 'xml' in content_type:
-                    parser = 'xml'
+                content_type = response.headers.get("Content-Type", "").lower()
+                if "xml" in content_type:
+                    parser = "xml"
                 else:
-                    parser = 'html.parser'
+                    parser = "html.parser"
                 soup = BeautifulSoup(response.content, parser)
 
                 # Fetching required details
@@ -174,14 +177,14 @@ class WebCrawler:
                     title=extract_title_from_soup(soup),
                     headings=extract_headings_from_soup(soup),
                     content=content,
-                    links=links
+                    links=links,
                 )
 
                 # Adding the fetched URLs in the frontier queue
                 await self._add_urls_in_queue(links)
 
                 # Writing the data in JSONL file
-                f.write(json.dumps(asdict(page_model), ensure_ascii=False) + '\n')
+                f.write(json.dumps(asdict(page_model), ensure_ascii=False) + "\n")
                 f.flush()
 
                 # Increasing the iterator
