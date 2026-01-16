@@ -68,7 +68,9 @@ def extract_headings_from_soup(soup: BeautifulSoup) -> List[str]:
     """
 
     heading_tags = soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"])
-    headings = [tag.get_text(strip=True) for tag in heading_tags if tag.get_text(strip=True)]
+    headings = [
+        tag.get_text(strip=True) for tag in heading_tags if tag.get_text(strip=True)
+    ]
     logger.debug(f"Found {len(headings)} headings")
     return headings
 
