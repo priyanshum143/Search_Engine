@@ -130,7 +130,9 @@ class WebCrawler:
                 f"Could not add {urls_len - urls_to_add} URLs due to queue capacity limit"
             )
 
-    async def _parse_response_and_make_page_model(self, response: httpx.Response) -> None:
+    async def _parse_response_and_make_page_model(
+            self, response: httpx.Response
+    ) -> None:
         """
         This method will parse the http responses and extract useful information
         and will make a page model for each page
