@@ -214,7 +214,7 @@ class WebCrawler:
         """
         iteration = 0
 
-        while not self.url_frontier.empty():
+        while not self.url_frontier.empty() and len(self.visited_urls) < CommonVariables.MAX_LIMIT:
             iteration += 1
             logger.debug(f"=== ITERATION {iteration} START ===")
             logger.debug(f"Queue size at start: {self.url_frontier.qsize()}")
@@ -230,5 +230,11 @@ class WebCrawler:
             logger.debug(f"Queue size after parsing: {self.url_frontier.qsize()}")
             logger.debug(f"=== ITERATION {iteration} END ===\n")
 
-        logger.debug(f"Crawler stopped. Final queue size: {self.url_frontier.qsize()}")
-        logger.debug(f"Total URLs visited: {len(self.visited_urls)}")
+        if self.url_frontier.empty():
+            logger.info(f"Crawler stopped. Final queue size: {self.url_frontier.qsize()}")
+            logger.info(f"Total URLs visited: {len(self.visited_urls)}")
+
+        if len(self.visited_urls) > CommonVariables.MAX_LIMIT:
+            logger.info(
+                f"Crawler stopped. Reached the Max Limit to crawl URLs {len(self.visited_urls)}/{CommonVariables.MAX_LIMIT}"
+            )
