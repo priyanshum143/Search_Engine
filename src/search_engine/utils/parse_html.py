@@ -4,8 +4,10 @@ This file will contain the code to extaract useful information from the crawled 
 
 from typing import List
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
 
 from src.search_engine.utils.loggers import get_logger
+from src.search_engine.utils.variables import CommonVariables
 
 logger = get_logger(__name__)
 
@@ -22,12 +24,32 @@ def extract_outgoing_links_from_soup(soup: BeautifulSoup) -> List[str]:
     """
 
     link_tags = soup.find_all("a", href=True)
-    links = [
-        link.get("href")
-        for link in link_tags
-        if link.get("href") and link.get("href").startswith("https://")
-    ]
-    logger.debug(f"Found {len(links)} links in the HTML content")
+    links = []
+
+    for link in link_tags:
+        href = link.get("href")
+
+        if not href or not href.startswith("https://"):
+            continue
+
+        # Skip if URL ends with non-HTML file extensions
+        if any(href.lower().endswith(ext) for ext in CommonVariables.SKIP_EXTENSIONS):
+            continue
+
+        try:
+            parsed_url = urlparse(href)
+            domain = parsed_url.netloc
+
+            if any(domain.endswith(accepted_domain) for accepted_domain in CommonVariables.ACCEPTED_DOMAINS):
+                links.append(href)
+            else:
+                logger.debug(f"Skipping URL from non-accepted domain: {domain}")
+
+        except Exception as e:
+            logger.debug(f"Error parsing URL {href}: {e}")
+            continue
+
+    logger.debug(f"Found {len(links)} valid links from accepted domains")
     return links
 
 
