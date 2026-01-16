@@ -24,12 +24,15 @@ async def main():
 
     try:
         await crawler_task
+        logger.info("Crawling done, starting indexing.")
+
+
     except (KeyboardInterrupt, asyncio.CancelledError):
         logger.info("Shutdown signal received...")
     finally:
         crawler_task.cancel()
         await crawler.async_rest_client.aclose()
-        logger.info("Crawler stopped gracefully.")
+        logger.info("Search Engine stopped gracefully.")
 
 
 if __name__ == "__main__":
