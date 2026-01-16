@@ -2,6 +2,7 @@
 This class will contain some common gobal variables used across the search engine project.
 """
 
+import re
 from pathlib import Path
 
 
@@ -33,6 +34,14 @@ class CommonVariables:
         ".ttf",
         ".pdf",
     ]
+
+    STOP_WORDS = [
+        "a", "an", "the", "and", "or", "but",
+        "is", "am", "are", "was", "were",
+        "have", "has", "had",
+        "of", "to", "in", "on", "for", "at", "by"
+    ]
+    TOKEN_PATTERN = re.compile(r"\b[a-zA-Z0-9]+\b")
 
     ROOT_DIR = Path(__file__).parent.parent.parent.parent
     JSONL_FILE_PATH = ROOT_DIR / "src" / "search_engine" / "data" / "PageModel.jsonl"
