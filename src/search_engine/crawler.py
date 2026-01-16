@@ -131,7 +131,7 @@ class WebCrawler:
             )
 
     async def _parse_response_and_make_page_model(
-            self, response: httpx.Response
+        self, response: httpx.Response
     ) -> None:
         """
         This method will parse the http responses and extract useful information
