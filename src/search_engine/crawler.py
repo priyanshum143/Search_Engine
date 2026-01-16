@@ -61,7 +61,7 @@ class WebCrawler:
 
         logger.debug("Fetching the URLs from the queue for crawling.")
         count = 0
-        while not self.url_frontier.empty() and count < CommonVariables.BATCH_SIZE:
+        while not self.url_frontier.empty() and count < CommonVariables.BATCH_SIZE and CommonVariables.MAX_LIMIT >= len(self.visited_urls):
             # Normalizing the URL
             url = self.url_frontier.get_nowait()
             url = normalize_url(url)
