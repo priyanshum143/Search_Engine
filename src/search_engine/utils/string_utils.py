@@ -2,10 +2,12 @@
 This file will contain some utility methods for string operations.
 """
 
+import re
 from urllib.parse import urlparse, urlunparse
 import hashlib
 
 from src.search_engine.utils.loggers import get_logger
+from src.search_engine.utils.variables import CommonVariables
 
 logger = get_logger(__name__)
 
@@ -56,3 +58,36 @@ def generate_content_hash(content: str) -> str:
         str: The hexadecimal hash string.
     """
     return hashlib.sha256(content.encode("utf-8")).hexdigest()
+
+
+def tokenize_content_into_set_of_words(content: str) -> set[str]:
+    """
+    This method will tokenize the content into words using regex
+
+    Args:
+        content: content of the webpage
+
+    Returns:
+        tokenize set of words
+    """
+
+    return {
+        token.lower()
+        for token in CommonVariables.TOKEN_PATTERN.findall(content)
+    }
+
+
+def get_count_of_word_in_content(content: str, word: str) -> int:
+    """
+    This method will get the count of a word present in a text content
+
+    Args:
+        content: content of a page
+        word: word, whose count we want
+
+    Returns:
+        count of word present in a content
+    """
+
+    pattern = rf"\b{re.escape(word.lower())}\b"
+    return len(re.findall(pattern, content.lower()))
