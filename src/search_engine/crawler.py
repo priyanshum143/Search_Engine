@@ -35,10 +35,8 @@ class WebCrawler:
         # Initialising some variables which we will need for crawling
         self.async_rest_client = httpx.AsyncClient(
             follow_redirects=True,
-            headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-            },
-            timeout=30.0,
+            headers=CommonVariables.HEADERS,
+            timeout=10,
         )
         self.visited_urls = set()
         self.urls_crawled = 0
@@ -64,15 +62,18 @@ class WebCrawler:
         logger.debug("Fetching the URLs from the queue for crawling.")
         count = 0
         while not self.url_frontier.empty() and count < CommonVariables.BATCH_SIZE:
+            # Normalizing the URL
             url = self.url_frontier.get_nowait()
             url = normalize_url(url)
 
+            # Checking if the URL has been visited already
             logger.debug(f"Checking if URL: {url} has already been visited.")
             if url in self.visited_urls:
                 logger.debug(f"URL: {url} has already been visited. Skipping.")
                 continue
             logger.debug(f"Picked up URL: {url} for crawling from the queue.")
 
+            # Adding the URL in visited URL list
             urls.append(url)
             self.visited_urls.add(url)
             count += 1
@@ -130,73 +131,82 @@ class WebCrawler:
             )
 
     async def _parse_response_and_make_page_model(
-        self, responses: List[httpx.Response]
+        self, response: httpx.Response
     ) -> None:
         """
-        This method will parse the list of http responses and extract useful information
+        This method will parse the http responses and extract useful information
         and will make a page model for each page
 
         Args:
-            responses (List[httpx.Response]): List of HTTP responses to parse.
+            response httpx.Response: HTTP responses to parse.
 
         Returns:
             None
         """
 
-        # Checking if the JSONL file present or not, if not then create a file
-        Path(CommonVariables.JSONL_FILE_PATH).parent.mkdir(parents=True, exist_ok=True)
+        try:
+            # Checking if the response is proper or not
+            if not isinstance(response, httpx.Response):
+                logger.debug(f"Skipping invalid response object: {type(response)}")
+                return
 
-        # Parsing each response and making a PageModel for each response
-        with open(CommonVariables.JSONL_FILE_PATH, "a", encoding="utf-8") as f:
-            iterator = 0
-            for response in responses:
-                if not isinstance(response, httpx.Response):
-                    logger.debug(f"Skipping invalid response object: {type(response)}")
-                    continue
-
-                logger.debug(f"Iterating response {iterator}/{len(responses)}")
-                # Checking the status code of the response
-                url = str(response.request.url)
-                if response.status_code != httpx.codes.OK:
-                    logger.debug(
-                        f"Status code for URL [{url}] is {response.status_code}\n content: {response.content}"
-                    )
-                    continue
-
-                # Creating a soup object based on content type
-                content_type = response.headers.get("Content-Type", "").lower()
-                if "xml" in content_type:
-                    parser = "xml"
-                else:
-                    parser = "html.parser"
-                soup = BeautifulSoup(response.content, parser)
-
-                # Fetching required details
-                content = extract_content_from_soup(soup)
-                doc_id = generate_content_hash(content)
-                links = extract_outgoing_links_from_soup(soup)
-
-                # Building the PageModel
-                page_model = PageModel(
-                    doc_id=doc_id,
-                    url=url,
-                    final_url=str(response.url),
-                    http_status=response.status_code,
-                    title=extract_title_from_soup(soup),
-                    headings=extract_headings_from_soup(soup),
-                    content=content,
-                    links=links,
+            # Checking the status code of the response
+            url = str(response.request.url)
+            if response.status_code != httpx.codes.OK:
+                logger.debug(
+                    f"Status code for URL [{url}] is {response.status_code}\n content: {response.content}"
                 )
+                return
 
-                # Adding the fetched URLs in the frontier queue
-                await self._add_urls_in_queue(links)
+            # Checking the content type
+            content_type = response.headers.get("Content-Type", "").lower()
+            if "html" not in content_type and "xml" not in content_type:
+                logger.debug(
+                    f"Skipping non-parseable content type [{content_type}] for URL [{url}]"
+                )
+                return
 
-                # Writing the data in JSONL file
+            # Determine parser
+            parser = "lxml-xml" if "xml" in content_type else "html.parser"
+            try:
+                soup = BeautifulSoup(response.content, parser)
+            except Exception as parse_error:
+                logger.warning(
+                    f"Failed to parse {url} with {parser}, trying html.parser: {parse_error}"
+                )
+                soup = BeautifulSoup(response.content, "html.parser")
+
+            # Fetching required details
+            content = extract_content_from_soup(soup)
+            doc_id = generate_content_hash(content)
+            links = extract_outgoing_links_from_soup(soup)
+
+            # Building the PageModel
+            page_model = PageModel(
+                doc_id=doc_id,
+                url=url,
+                final_url=str(response.url),
+                http_status=response.status_code,
+                title=extract_title_from_soup(soup),
+                headings=extract_headings_from_soup(soup),
+                content=content,
+                links=links,
+            )
+
+            # Adding the fetched URLs in the frontier queue
+            await self._add_urls_in_queue(links)
+
+            Path(CommonVariables.JSONL_FILE_PATH).parent.mkdir(
+                parents=True, exist_ok=True
+            )
+
+            with open(CommonVariables.JSONL_FILE_PATH, "a", encoding="utf-8") as f:
                 f.write(json.dumps(asdict(page_model), ensure_ascii=False) + "\n")
                 f.flush()
 
-                # Increasing the iterator
-                iterator += 1
+            logger.debug(f"Successfully processed response for URL [{url}]")
+        except Exception as e:
+            logger.debug(f"Error processing response: {e}", exc_info=True)
 
     async def start_crawler(self) -> None:
         """
@@ -214,7 +224,9 @@ class WebCrawler:
             logger.debug(f"Fetched {len(responses)} responses")
             logger.debug(f"Queue size after fetch: {self.url_frontier.qsize()}")
 
-            await self._parse_response_and_make_page_model(responses)
+            for resp_count, response in enumerate(responses, 1):
+                logger.debug(f"Parsing response {resp_count}/{len(responses)}")
+                await self._parse_response_and_make_page_model(response)
             logger.debug(f"Queue size after parsing: {self.url_frontier.qsize()}")
             logger.debug(f"=== ITERATION {iteration} END ===\n")
 
