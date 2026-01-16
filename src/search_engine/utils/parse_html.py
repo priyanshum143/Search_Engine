@@ -40,7 +40,10 @@ def extract_outgoing_links_from_soup(soup: BeautifulSoup) -> List[str]:
             parsed_url = urlparse(href)
             domain = parsed_url.netloc
 
-            if any(domain.endswith(accepted_domain) for accepted_domain in CommonVariables.ACCEPTED_DOMAINS):
+            if any(
+                domain.endswith(accepted_domain)
+                for accepted_domain in CommonVariables.ACCEPTED_DOMAINS
+            ):
                 links.append(href)
             else:
                 logger.debug(f"Skipping URL from non-accepted domain: {domain}")
@@ -65,9 +68,7 @@ def extract_headings_from_soup(soup: BeautifulSoup) -> List[str]:
     """
 
     heading_tags = soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"])
-    headings = [
-        tag.get_text(strip=True) for tag in heading_tags if tag.get_text(strip=True)
-    ]
+    headings = [tag.get_text(strip=True) for tag in heading_tags if tag.get_text(strip=True)]
     logger.debug(f"Found {len(headings)} headings")
     return headings
 
