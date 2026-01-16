@@ -22,4 +22,4 @@ class CommonVariables:
     SKIP_EXTENSIONS = ['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.pdf']
 
     ROOT_DIR = Path(__file__).parent.parent.parent.parent
-    JSONL_FILE_PATH = ROOT_DIR / "src" / "search_engine" / "models" / "PageModel.jsonl"
+    JSONL_FILE_PATH = ROOT_DIR / "src" / "search_engine" / "data" / "PageModel.jsonl"
