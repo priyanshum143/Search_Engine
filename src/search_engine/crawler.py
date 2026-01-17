@@ -44,7 +44,8 @@ class WebCrawler:
         # Initializing URL frontier with seed URLs
         self.url_frontier = asyncio.Queue(maxsize=CommonVariables.MAX_LIMIT)
         logger.debug(
-            f"Initializing URL frontier with seed URLs: {CommonVariables.SEED_URLS}"
+            f"Initializing URL frontier with seed URLs: [{CommonVariables.SEED_URLS}] "
+            f"and with max limit [{CommonVariables.MAX_LIMIT}]"
         )
         for url in CommonVariables.SEED_URLS:
             self.url_frontier.put_nowait(url)
@@ -58,29 +59,120 @@ class WebCrawler:
         """
 
         urls = []
-
         logger.debug("Fetching the URLs from the queue for crawling.")
-        count = 0
-        while not self.url_frontier.empty() and count < CommonVariables.BATCH_SIZE and CommonVariables.MAX_LIMIT >= len(self.visited_urls):
+
+        count = 1
+        while (
+            not self.url_frontier.empty()
+            and count <= CommonVariables.BATCH_SIZE
+            and len(self.visited_urls) <= CommonVariables.MAX_LIMIT
+        ):
             # Normalizing the URL
             url = self.url_frontier.get_nowait()
             url = normalize_url(url)
 
-            # Checking if the URL has been visited already
-            logger.debug(f"Checking if URL: {url} has already been visited.")
-            if url in self.visited_urls:
-                logger.debug(f"URL: {url} has already been visited. Skipping.")
-                continue
-            logger.debug(f"Picked up URL: {url} for crawling from the queue.")
-
-            # Adding the URL in visited URL list
-            urls.append(url)
+            # Adding the URL in list to get response
             self.visited_urls.add(url)
+            urls.append(url)
             count += 1
 
         requests = prepare_async_requests(urls, self.async_rest_client)
         responses = await hit_async_requests(requests, self.async_rest_client)
         return responses
+
+    async def _parse_response_and_make_page_model(
+        self, response: httpx.Response
+    ) -> PageModel | None:
+        """
+        This method will parse the http responses and extract useful information
+        and will make a page model for each page
+
+        Args:
+            response httpx.Response: HTTP responses to parse.
+
+        Returns:
+            PageModel or None
+        """
+
+        try:
+            # Checking if the response is proper or not
+            if not isinstance(response, httpx.Response):
+                logger.debug(f"Skipping invalid response object: {type(response)}")
+                return None
+
+            # Checking the status code of the response
+            url = str(response.request.url)
+            if response.status_code != httpx.codes.OK:
+                logger.debug(
+                    f"Status code for URL [{url}] is {response.status_code}\n content: {response.content}"
+                )
+                return None
+
+            # Checking the content type
+            content_type = response.headers.get("Content-Type", "").lower()
+            if "html" not in content_type and "xml" not in content_type:
+                logger.debug(
+                    f"Skipping non-parseable content type [{content_type}] for URL [{url}]"
+                )
+                return None
+
+            # Determine parser
+            parser = "lxml-xml" if "xml" in content_type else "html.parser"
+            try:
+                soup = BeautifulSoup(response.content, parser)
+            except Exception as parse_error:
+                logger.warning(
+                    f"Failed to parse {url} with {parser}, trying html.parser: {parse_error}"
+                )
+                soup = BeautifulSoup(response.content, "html.parser")
+
+            # Fetching required details
+            content = extract_content_from_soup(soup)
+            doc_id = generate_content_hash(content)
+            links = extract_outgoing_links_from_soup(soup)
+
+            # Building the PageModel
+            page_model = PageModel(
+                doc_id=doc_id,
+                url=url,
+                final_url=str(response.url),
+                http_status=response.status_code,
+                title=extract_title_from_soup(soup),
+                headings=extract_headings_from_soup(soup),
+                content=content,
+                links=links,
+            )
+
+            logger.debug(f"Successfully processed response for URL [{url}]")
+            return page_model
+        except Exception as e:
+            logger.debug(f"Error processing response: {e}", exc_info=True)
+            return None
+
+    async def _write_page_to_jsonl(self, page_model: PageModel) -> None:
+        """
+        Ensures JSONL file exists and optionally appends a PageModel record.
+        The file becomes visible immediately after creation, even if empty.
+
+        Args:
+            page_model: PageModel to write
+
+        Returns:
+            None
+        """
+
+        jsonl_path = Path(CommonVariables.JSONL_FILE_PATH)
+
+        # Ensure parent directory exists
+        jsonl_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Touch the file so it exists immediately
+        jsonl_path.touch(exist_ok=True)
+
+        # Append JSONL record
+        with jsonl_path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(asdict(page_model), ensure_ascii=False) + "\n")
+            f.flush()
 
     async def _add_urls_in_queue(self, urls: List[str]) -> None:
         """
@@ -130,84 +222,6 @@ class WebCrawler:
                 f"Could not add {urls_len - urls_to_add} URLs due to queue capacity limit"
             )
 
-    async def _parse_response_and_make_page_model(
-        self, response: httpx.Response
-    ) -> None:
-        """
-        This method will parse the http responses and extract useful information
-        and will make a page model for each page
-
-        Args:
-            response httpx.Response: HTTP responses to parse.
-
-        Returns:
-            None
-        """
-
-        try:
-            # Checking if the response is proper or not
-            if not isinstance(response, httpx.Response):
-                logger.debug(f"Skipping invalid response object: {type(response)}")
-                return
-
-            # Checking the status code of the response
-            url = str(response.request.url)
-            if response.status_code != httpx.codes.OK:
-                logger.debug(
-                    f"Status code for URL [{url}] is {response.status_code}\n content: {response.content}"
-                )
-                return
-
-            # Checking the content type
-            content_type = response.headers.get("Content-Type", "").lower()
-            if "html" not in content_type and "xml" not in content_type:
-                logger.debug(
-                    f"Skipping non-parseable content type [{content_type}] for URL [{url}]"
-                )
-                return
-
-            # Determine parser
-            parser = "lxml-xml" if "xml" in content_type else "html.parser"
-            try:
-                soup = BeautifulSoup(response.content, parser)
-            except Exception as parse_error:
-                logger.warning(
-                    f"Failed to parse {url} with {parser}, trying html.parser: {parse_error}"
-                )
-                soup = BeautifulSoup(response.content, "html.parser")
-
-            # Fetching required details
-            content = extract_content_from_soup(soup)
-            doc_id = generate_content_hash(content)
-            links = extract_outgoing_links_from_soup(soup)
-
-            # Building the PageModel
-            page_model = PageModel(
-                doc_id=doc_id,
-                url=url,
-                final_url=str(response.url),
-                http_status=response.status_code,
-                title=extract_title_from_soup(soup),
-                headings=extract_headings_from_soup(soup),
-                content=content,
-                links=links,
-            )
-
-            # Adding the fetched URLs in the frontier queue
-            await self._add_urls_in_queue(links)
-
-            Path(CommonVariables.JSONL_FILE_PATH).parent.mkdir(
-                parents=True, exist_ok=True
-            )
-
-            with open(CommonVariables.JSONL_FILE_PATH, "a", encoding="utf-8") as f:
-                f.write(json.dumps(asdict(page_model), ensure_ascii=False) + "\n")
-                f.flush()
-
-            logger.debug(f"Successfully processed response for URL [{url}]")
-        except Exception as e:
-            logger.debug(f"Error processing response: {e}", exc_info=True)
-
     async def start_crawler(self) -> None:
         """
         This method is main method to start our crawler
@@ -225,12 +239,20 @@ class WebCrawler:
 
             responses = await self._fetch_pages_for_urls_and_return_response()
             logger.debug(f"Fetched {len(responses)} responses")
-            logger.debug(f"Queue size after fetch: {self.url_frontier.qsize()}")
 
             for resp_count, response in enumerate(responses, 1):
                 logger.debug(f"Parsing response {resp_count}/{len(responses)}")
-                await self._parse_response_and_make_page_model(response)
-            logger.debug(f"Queue size after parsing: {self.url_frontier.qsize()}")
+                page_model = await self._parse_response_and_make_page_model(response)
+
+                if page_model:
+                    logger.debug("Writing the page model in JSONL")
+                    await self._write_page_to_jsonl(page_model)
+
+                    # Adding outgoing URLs from the above page model in url frontier
+                    links = page_model.links
+                    logger.debug(f"Adding links found from above page [{links}] in queue")
+                    await self._add_urls_in_queue(links)
+
             logger.debug(f"=== ITERATION {iteration} END ===\n")
 
         if self.url_frontier.empty():
