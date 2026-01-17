@@ -241,6 +241,9 @@ class WebCrawler:
             logger.debug(f"Fetched {len(responses)} responses")
 
             for resp_count, response in enumerate(responses, 1):
+                if len(self.visited_urls) > CommonVariables.MAX_LIMIT:
+                    break
+
                 logger.debug(f"Parsing response {resp_count}/{len(responses)}")
                 page_model = await self._parse_response_and_make_page_model(response)
 
