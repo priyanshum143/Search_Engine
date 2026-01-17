@@ -72,7 +72,4 @@ def tokenize_content_into_list_of_words(content: str) -> List[str]:
         tokenize set of words
     """
 
-    return [
-        token.lower()
-        for token in CommonVariables.TOKEN_PATTERN.findall(content)
-    ]
+    return [token.lower() for token in CommonVariables.TOKEN_PATTERN.findall(content)]

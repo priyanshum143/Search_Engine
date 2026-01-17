@@ -23,7 +23,9 @@ class Indexer:
     """
 
     def __init__(self):
-        self.inverted_index: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+        self.inverted_index: dict[str, dict[str, int]] = defaultdict(
+            lambda: defaultdict(int)
+        )
 
     async def _create_inverted_index_for_page_model(self, model: PageModel) -> None:
         """
@@ -37,7 +39,9 @@ class Indexer:
         """
 
         doc_id = model.doc_id
-        logger.debug(f"Making an inverted index for tokens present in page with id {doc_id}")
+        logger.debug(
+            f"Making an inverted index for tokens present in page with id {doc_id}"
+        )
 
         # Accumulate total weighted score per term for this document
         term_scores = defaultdict(int)
@@ -62,7 +66,6 @@ class Indexer:
             if term in CommonVariables.STOP_WORDS:
                 continue
             term_scores[term] += freq * weightage
-
 
         # Tokenizing the title and getting frequency of each word
         title = model.title or ""
@@ -93,7 +96,9 @@ class Indexer:
 
         with open(CommonVariables.JSONL_FILE_PATH, "r", encoding="utf-8") as f:
             for line_no, line in enumerate(f, start=1):
-                logger.debug(f"Iterating the line number {line_no} to make an inverted index")
+                logger.debug(
+                    f"Iterating the line number {line_no} to make an inverted index"
+                )
 
                 # Fetching the line
                 line = line.strip()
@@ -110,13 +115,19 @@ class Indexer:
                 try:
                     model = PageModel(**record)
                 except TypeError as e:
-                    logger.debug(f"Skipping line {line_no}: not matching PageModel fields: {e}")
+                    logger.debug(
+                        f"Skipping line {line_no}: not matching PageModel fields: {e}"
+                    )
                     skipped += 1
                     continue
 
                 await self._create_inverted_index_for_page_model(model)
                 indexed += 1
 
-                logger.debug(f"Successfully made an inverted index out of line number {line_no}")
+                logger.debug(
+                    f"Successfully made an inverted index out of line number {line_no}"
+                )
 
-            logger.debug(f"Indexing complete, Indexed {indexed} PageModels, Skipped {skipped}")
+            logger.debug(
+                f"Indexing complete, Indexed {indexed} PageModels, Skipped {skipped}"
+            )

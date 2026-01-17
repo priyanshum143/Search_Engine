@@ -36,10 +36,29 @@ class CommonVariables:
     ]
 
     STOP_WORDS = [
-        "a", "an", "the", "and", "or", "but",
-        "is", "am", "are", "was", "were",
-        "have", "has", "had",
-        "of", "to", "in", "on", "for", "at", "by", "yes", "no"
+        "a",
+        "an",
+        "the",
+        "and",
+        "or",
+        "but",
+        "is",
+        "am",
+        "are",
+        "was",
+        "were",
+        "have",
+        "has",
+        "had",
+        "of",
+        "to",
+        "in",
+        "on",
+        "for",
+        "at",
+        "by",
+        "yes",
+        "no",
     ]
     TOKEN_PATTERN = re.compile(r"\b[a-zA-Z0-9]+\b")
 

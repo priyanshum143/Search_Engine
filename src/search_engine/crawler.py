@@ -250,7 +250,9 @@ class WebCrawler:
 
                     # Adding outgoing URLs from the above page model in url frontier
                     links = page_model.links
-                    logger.debug(f"Adding links found from above page [{links}] in queue")
+                    logger.debug(
+                        f"Adding links found from above page [{links}] in queue"
+                    )
                     await self._add_urls_in_queue(links)
 
             logger.debug(f"=== ITERATION {iteration} END ===\n")
