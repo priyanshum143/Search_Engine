@@ -4,11 +4,11 @@ This file will contain some utility methods for string operations.
 
 import re
 from urllib.parse import urlparse, urlunparse
+from typing import List
 import hashlib
 
 from src.search_engine.utils.loggers import get_logger
 from src.search_engine.utils.variables import CommonVariables
-from src.search_engine.models.TokenType import TokenType, TOKEN_TYPE_WEIGHTS
 
 logger = get_logger(__name__)
 
@@ -61,7 +61,7 @@ def generate_content_hash(content: str) -> str:
     return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
 
-def tokenize_content_into_set_of_words(content: str) -> set[str]:
+def tokenize_content_into_list_of_words(content: str) -> List[str]:
     """
     This method will tokenize the content into words using regex
 
@@ -72,32 +72,7 @@ def tokenize_content_into_set_of_words(content: str) -> set[str]:
         tokenize set of words
     """
 
-    return {
+    return [
         token.lower()
         for token in CommonVariables.TOKEN_PATTERN.findall(content)
-    }
-
-
-def score_token_based_on_token_type(
-    text: str,
-    token: str,
-    token_type: TokenType = TokenType.CONTENT
-) -> int:
-    """
-    This method will get the count of a word present in a text content
-
-    Args:
-        text: text from which, we need count
-        token: token, whose freq we need
-        token_type: token type, so that we can score
-
-    Returns:
-        score of the token
-    """
-
-    weight = TOKEN_TYPE_WEIGHTS[token_type]
-
-    pattern = rf"\b{re.escape(token.lower())}\b"
-    count = len(re.findall(pattern, text.lower()))
-
-    return count * weight
+    ]
