@@ -8,6 +8,7 @@ import hashlib
 
 from src.search_engine.utils.loggers import get_logger
 from src.search_engine.utils.variables import CommonVariables
+from src.search_engine.models.TokenType import TokenType, TOKEN_TYPE_WEIGHTS
 
 logger = get_logger(__name__)
 
@@ -77,17 +78,26 @@ def tokenize_content_into_set_of_words(content: str) -> set[str]:
     }
 
 
-def get_count_of_word_in_content(content: str, word: str) -> int:
+def score_token_based_on_token_type(
+    text: str,
+    token: str,
+    token_type: TokenType = TokenType.CONTENT
+) -> int:
     """
     This method will get the count of a word present in a text content
 
     Args:
-        content: content of a page
-        word: word, whose count we want
+        text: text from which, we need count
+        token: token, whose freq we need
+        token_type: token type, so that we can score
 
     Returns:
-        count of word present in a content
+        score of the token
     """
 
-    pattern = rf"\b{re.escape(word.lower())}\b"
-    return len(re.findall(pattern, content.lower()))
+    weight = TOKEN_TYPE_WEIGHTS[token_type]
+
+    pattern = rf"\b{re.escape(token.lower())}\b"
+    count = len(re.findall(pattern, text.lower()))
+
+    return count * weight
