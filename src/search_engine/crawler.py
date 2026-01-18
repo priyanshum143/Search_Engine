@@ -67,11 +67,8 @@ class WebCrawler:
             and count <= CommonVariables.BATCH_SIZE
             and len(self.visited_urls) <= CommonVariables.MAX_LIMIT
         ):
-            # Normalizing the URL
-            url = self.url_frontier.get_nowait()
-            url = normalize_url(url)
-
             # Adding the URL in list to get response
+            url = self.url_frontier.get_nowait()
             self.visited_urls.add(url)
             urls.append(url)
             count += 1
@@ -241,6 +238,9 @@ class WebCrawler:
             logger.debug(f"Fetched {len(responses)} responses")
 
             for resp_count, response in enumerate(responses, 1):
+                if len(self.visited_urls) > CommonVariables.MAX_LIMIT:
+                    break
+
                 logger.debug(f"Parsing response {resp_count}/{len(responses)}")
                 page_model = await self._parse_response_and_make_page_model(response)
 
