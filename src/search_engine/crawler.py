@@ -67,11 +67,8 @@ class WebCrawler:
             and count <= CommonVariables.BATCH_SIZE
             and len(self.visited_urls) <= CommonVariables.MAX_LIMIT
         ):
-            # Normalizing the URL
-            url = self.url_frontier.get_nowait()
-            url = normalize_url(url)
-
             # Adding the URL in list to get response
+            url = self.url_frontier.get_nowait()
             self.visited_urls.add(url)
             urls.append(url)
             count += 1
