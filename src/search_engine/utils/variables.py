@@ -69,6 +69,8 @@ class CommonVariables:
         "her",
         "they",
         "them",
+        "as",
+        "at",
     ]
     TOKEN_PATTERN = re.compile(r"\b[a-zA-Z0-9]+\b")
 
