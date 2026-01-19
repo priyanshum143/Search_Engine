@@ -246,7 +246,9 @@ class WebCrawler:
                         break
 
                     logger.debug(f"Parsing response {resp_count}/{len(responses)}")
-                    page_model = await self._parse_response_and_make_page_model(response)
+                    page_model = await self._parse_response_and_make_page_model(
+                        response
+                    )
 
                     if page_model:
                         logger.debug("Writing the page model in JSONL")

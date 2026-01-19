@@ -43,7 +43,6 @@ async def main():
             for token in tokens:
                 logger.info(f"{token} -> {indexer.inverted_index.get(token, {})}")
 
-
     except KeyboardInterrupt:
         logger.info("Shutdown signal received...")
 

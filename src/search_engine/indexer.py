@@ -99,7 +99,9 @@ class Indexer:
         json_path.parent.mkdir(parents=True, exist_ok=True)
         json_path.touch(exist_ok=True)
 
-        inverted_index_dict = {term: dict(postings) for term, postings in self.inverted_index.items()}
+        inverted_index_dict = {
+            term: dict(postings) for term, postings in self.inverted_index.items()
+        }
         with json_path.open("w", encoding="utf-8") as f:
             json.dump(inverted_index_dict, f, ensure_ascii=False, indent=4)
             f.flush()

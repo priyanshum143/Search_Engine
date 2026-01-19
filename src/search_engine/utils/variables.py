@@ -59,8 +59,7 @@ class CommonVariables:
         "by",
         "yes",
         "no",
-        "would"
-        "should",
+        "would" "should",
         "could",
         "he",
         "she",
@@ -76,5 +75,7 @@ class CommonVariables:
 
     ROOT_DIR = Path(__file__).parent.parent.parent.parent
     JSONL_FILE_PATH = ROOT_DIR / "src" / "search_engine" / "data" / "PageModel.jsonl"
-    INVERTED_INDEX_FILE_PATH = ROOT_DIR / "src" / "search_engine" / "data" / "InvertedIndex.json"
+    INVERTED_INDEX_FILE_PATH = (
+        ROOT_DIR / "src" / "search_engine" / "data" / "InvertedIndex.json"
+    )
     DOC_STORE_FILE_PATH = ROOT_DIR / "src" / "search_engine" / "data" / "DocStore.json"
