@@ -3,8 +3,11 @@ This file will contain the code to read the data collected by the crawler
 and to make an inverted index
 """
 
+import asyncio
+from typing import Any
 import json
 from collections import Counter, defaultdict
+from pathlib import Path
 
 from src.search_engine.utils.variables import CommonVariables
 from src.search_engine.utils.loggers import get_logger
@@ -26,6 +29,7 @@ class Indexer:
         self.inverted_index: dict[str, dict[str, int]] = defaultdict(
             lambda: defaultdict(int)
         )
+        self.doc_store: dict[str, dict[str, Any]] = defaultdict(dict)
 
     async def _create_inverted_index_for_page_model(self, model: PageModel) -> None:
         """
@@ -83,51 +87,89 @@ class Indexer:
 
         logger.debug(f"Indexed doc_id={doc_id}")
 
-    async def iterate_crawled_data_and_make_inverted_index(self) -> None:
+    async def _write_inverted_index_in_json(self) -> None:
         """
-        This method will iterate through all the PageModels and will make an inverted index
+        This method will write the complete inverted index
 
         Returns:
             None
         """
 
-        indexed = 0
-        skipped = 0
+        json_path = Path(CommonVariables.INVERTED_INDEX_FILE_PATH)
+        json_path.parent.mkdir(parents=True, exist_ok=True)
+        json_path.touch(exist_ok=True)
 
-        with open(CommonVariables.JSONL_FILE_PATH, "r", encoding="utf-8") as f:
-            for line_no, line in enumerate(f, start=1):
-                logger.debug(
-                    f"Iterating the line number {line_no} to make an inverted index"
-                )
+        inverted_index_dict = {term: dict(postings) for term, postings in self.inverted_index.items()}
+        with json_path.open("w", encoding="utf-8") as f:
+            json.dump(inverted_index_dict, f, ensure_ascii=False, indent=4)
+            f.flush()
 
-                # Fetching the line
-                line = line.strip()
+    async def _create_doc_store_for_page_model(self, model: PageModel) -> None:
+        """
+        This method will create a doc store for the given page model
+        which will provide the necessary details from page model, final_url, title, some content
 
-                # Trying to load line as JSON
-                try:
-                    record = json.loads(line)
-                except json.JSONDecodeError as e:
-                    logger.debug(f"Skipping bad JSON at line {line_no}: {e}")
-                    skipped += 1
-                    continue
+        Args:
+            model:
+                Page model
 
-                # Trying to convert the JSON as PageModel
-                try:
-                    model = PageModel(**record)
-                except TypeError as e:
-                    logger.debug(
-                        f"Skipping line {line_no}: not matching PageModel fields: {e}"
-                    )
-                    skipped += 1
-                    continue
+        Returns:
+            None
+        """
 
+        self.doc_store[model.doc_id] = {
+            "url": model.final_url,
+            "title": model.title,
+            "content": model.content,
+        }
+
+    async def _write_doc_store_in_json(self) -> None:
+        """
+        This method will write the doc store in a json file
+
+        Returns:
+            None
+        """
+
+        json_path = Path(CommonVariables.DOC_STORE_FILE_PATH)
+        json_path.parent.mkdir(parents=True, exist_ok=True)
+        json_path.touch(exist_ok=True)
+
+        doc_store = {term: dict(postings) for term, postings in self.doc_store.items()}
+        with json_path.open("w", encoding="utf-8") as f:
+            json.dump(doc_store, f, ensure_ascii=False, indent=4)
+            f.flush()
+
+    async def start_indexing(
+        self,
+        page_model_queue: asyncio.Queue,
+        crawl_done: asyncio.Event,
+    ) -> None:
+        """
+        This method will check if crawler is working or not, and if working
+        will get the page model from queue and index the models
+
+        Args:
+            page_model_queue: page model queue
+            crawl_done: crawler event
+
+        Returns:
+            None
+        """
+
+        while True:
+            if crawl_done.is_set() and page_model_queue.empty():
+                break
+
+            try:
+                model = await asyncio.wait_for(page_model_queue.get(), timeout=0.5)
+            except asyncio.TimeoutError:
+                continue
+
+            try:
                 await self._create_inverted_index_for_page_model(model)
-                indexed += 1
-
-                logger.debug(
-                    f"Successfully made an inverted index out of line number {line_no}"
-                )
-
-            logger.debug(
-                f"Indexing complete, Indexed {indexed} PageModels, Skipped {skipped}"
-            )
+                await self._create_doc_store_for_page_model(model)
+            finally:
+                await self._write_inverted_index_in_json()
+                await self._write_doc_store_in_json()
+                page_model_queue.task_done()
