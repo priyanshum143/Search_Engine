@@ -40,6 +40,7 @@ class WebCrawler:
         )
         self.visited_urls = set()
         self.page_model_frontier = asyncio.Queue(maxsize=CommonVariables.MAX_LIMIT)
+        self.crawl_done = asyncio.Event()
 
         # Initializing URL frontier with seed URLs
         self.url_frontier = asyncio.Queue(maxsize=CommonVariables.MAX_LIMIT)
@@ -227,45 +228,49 @@ class WebCrawler:
         """
         iteration = 0
 
-        while (
-            not self.url_frontier.empty()
-            and len(self.visited_urls) < CommonVariables.MAX_LIMIT
-        ):
-            iteration += 1
-            logger.debug(f"=== ITERATION {iteration} START ===")
-            logger.debug(f"Queue size at start: {self.url_frontier.qsize()}")
-            logger.debug(f"Visited URLs count: {len(self.visited_urls)}")
+        try:
+            while (
+                not self.url_frontier.empty()
+                and len(self.visited_urls) < CommonVariables.MAX_LIMIT
+            ):
+                iteration += 1
+                logger.debug(f"=== ITERATION {iteration} START ===")
+                logger.debug(f"Queue size at start: {self.url_frontier.qsize()}")
+                logger.debug(f"Visited URLs count: {len(self.visited_urls)}")
 
-            responses = await self._fetch_pages_for_urls_and_return_response()
-            logger.debug(f"Fetched {len(responses)} responses")
+                responses = await self._fetch_pages_for_urls_and_return_response()
+                logger.debug(f"Fetched {len(responses)} responses")
 
-            for resp_count, response in enumerate(responses, 1):
-                if len(self.visited_urls) >= CommonVariables.MAX_LIMIT:
-                    break
+                for resp_count, response in enumerate(responses, 1):
+                    if len(self.visited_urls) >= CommonVariables.MAX_LIMIT:
+                        break
 
-                logger.debug(f"Parsing response {resp_count}/{len(responses)}")
-                page_model = await self._parse_response_and_make_page_model(response)
+                    logger.debug(f"Parsing response {resp_count}/{len(responses)}")
+                    page_model = await self._parse_response_and_make_page_model(response)
 
-                if page_model:
-                    logger.debug("Writing the page model in JSONL")
-                    await self._write_page_to_jsonl(page_model)
+                    if page_model:
+                        logger.debug("Writing the page model in JSONL")
+                        await self._write_page_to_jsonl(page_model)
 
-                    # Adding outgoing URLs from the above page model in url frontier
-                    links = page_model.links
-                    logger.debug(
-                        f"Adding links found from above page [{links}] in queue"
-                    )
-                    await self._add_urls_in_queue(links)
+                        # Adding outgoing URLs from the above page model in url frontier
+                        links = page_model.links
+                        logger.debug(
+                            f"Adding links found from above page [{links}] in queue"
+                        )
+                        await self._add_urls_in_queue(links)
 
-            logger.debug(f"=== ITERATION {iteration} END ===\n")
+                logger.debug(f"=== ITERATION {iteration} END ===\n")
 
-        if self.url_frontier.empty():
-            logger.info(
-                f"Crawler stopped. Final queue size: {self.url_frontier.qsize()}"
-            )
-            logger.info(f"Total URLs visited: {len(self.visited_urls)}")
+            if self.url_frontier.empty():
+                logger.info(
+                    f"Crawler stopped. Final queue size: {self.url_frontier.qsize()}"
+                )
+                logger.info(f"Total URLs visited: {len(self.visited_urls)}")
 
-        if len(self.visited_urls) > CommonVariables.MAX_LIMIT:
-            logger.info(
-                f"Crawler stopped. Reached the Max Limit to crawl URLs {len(self.visited_urls)}/{CommonVariables.MAX_LIMIT}"
-            )
+            if len(self.visited_urls) > CommonVariables.MAX_LIMIT:
+                logger.info(
+                    f"Crawler stopped. Reached the Max Limit to crawl URLs {len(self.visited_urls)}/{CommonVariables.MAX_LIMIT}"
+                )
+
+        finally:
+            self.crawl_done.set()
