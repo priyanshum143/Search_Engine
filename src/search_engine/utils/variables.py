@@ -59,8 +59,23 @@ class CommonVariables:
         "by",
         "yes",
         "no",
+        "would" "should",
+        "could",
+        "he",
+        "she",
+        "his",
+        "him",
+        "her",
+        "they",
+        "them",
+        "as",
+        "at",
     ]
     TOKEN_PATTERN = re.compile(r"\b[a-zA-Z0-9]+\b")
 
     ROOT_DIR = Path(__file__).parent.parent.parent.parent
     JSONL_FILE_PATH = ROOT_DIR / "src" / "search_engine" / "data" / "PageModel.jsonl"
+    INVERTED_INDEX_FILE_PATH = (
+        ROOT_DIR / "src" / "search_engine" / "data" / "InvertedIndex.json"
+    )
+    DOC_STORE_FILE_PATH = ROOT_DIR / "src" / "search_engine" / "data" / "DocStore.json"
