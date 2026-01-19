@@ -39,7 +39,7 @@ class WebCrawler:
             timeout=10,
         )
         self.visited_urls = set()
-        self.urls_crawled = 0
+        self.page_model_frontier = asyncio.Queue(maxsize=CommonVariables.MAX_LIMIT)
 
         # Initializing URL frontier with seed URLs
         self.url_frontier = asyncio.Queue(maxsize=CommonVariables.MAX_LIMIT)
@@ -140,6 +140,8 @@ class WebCrawler:
                 links=links,
             )
 
+            # Adding the page model in page model queue
+            self.page_model_frontier.put_nowait(page_model)
             logger.debug(f"Successfully processed response for URL [{url}]")
             return page_model
         except Exception as e:
@@ -238,7 +240,7 @@ class WebCrawler:
             logger.debug(f"Fetched {len(responses)} responses")
 
             for resp_count, response in enumerate(responses, 1):
-                if len(self.visited_urls) > CommonVariables.MAX_LIMIT:
+                if len(self.visited_urls) >= CommonVariables.MAX_LIMIT:
                     break
 
                 logger.debug(f"Parsing response {resp_count}/{len(responses)}")
