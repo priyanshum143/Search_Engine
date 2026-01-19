@@ -39,9 +39,9 @@ async def main():
                 continue
 
             tokens = tokenize_content_into_list_of_words(query)
-            logger.info("Got the query [tokens], Looking for appropriate response")
+            logger.info(f"Got the query [{tokens}], Looking for appropriate response")
             for token in tokens:
-                print(indexer.inverted_index.get(token, {}))
+                logger.info(f"{token} -> {indexer.inverted_index.get(token, {})}")
 
 
     except KeyboardInterrupt:
