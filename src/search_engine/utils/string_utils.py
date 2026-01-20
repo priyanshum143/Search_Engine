@@ -2,8 +2,7 @@
 This file will contain some utility methods for string operations.
 """
 
-import re
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse, urljoin
 from typing import List
 import hashlib
 
@@ -13,12 +12,13 @@ from src.search_engine.utils.variables import CommonVariables
 logger = get_logger(__name__)
 
 
-def normalize_url(url: str) -> str:
+def normalize_url(url: str, source_url: str = None) -> str:
     """
     Normalize a URL by removing trailing slashes and "#" and converting to lowercase.
 
     Args:
         url (str): The URL to normalize.
+        source_url (str): Source URL
     Returns:
         str: The normalized URL.
     """
@@ -26,7 +26,15 @@ def normalize_url(url: str) -> str:
     logger.debug(f"Normalizing URL: {url}")
 
     # Parse the URL into components
+    url = url.strip()
     parsed = urlparse(url.strip())
+
+    # Joining the relative link with its source
+    if not parsed.scheme:
+        if not source_url:
+            return ""
+        url = urljoin(source_url, url)
+        parsed = urlparse(url)
 
     # Normalize scheme and netloc to lowercase
     scheme = parsed.scheme.lower()
