@@ -36,6 +36,9 @@ def extract_outgoing_links_from_soup(soup: BeautifulSoup) -> List[str]:
         if any(href.lower().endswith(ext) for ext in CommonVariables.SKIP_EXTENSIONS):
             continue
 
+        if href.lower().startswith(("mailto:", "javascript:", "tel:", "#")):
+            continue
+
         # try:
         #     parsed_url = urlparse(href)
         #     domain = parsed_url.netloc
