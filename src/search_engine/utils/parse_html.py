@@ -29,29 +29,30 @@ def extract_outgoing_links_from_soup(soup: BeautifulSoup) -> List[str]:
     for link in link_tags:
         href = link.get("href")
 
-        if not href or not href.startswith("https://"):
-            continue
+        # if not href or not href.startswith("https://"):
+        #     continue
 
         # Skip if URL ends with non-HTML file extensions
         if any(href.lower().endswith(ext) for ext in CommonVariables.SKIP_EXTENSIONS):
             continue
 
-        try:
-            parsed_url = urlparse(href)
-            domain = parsed_url.netloc
+        # try:
+        #     parsed_url = urlparse(href)
+        #     domain = parsed_url.netloc
+        #
+        #     if any(
+        #         domain.endswith(accepted_domain)
+        #         for accepted_domain in CommonVariables.ACCEPTED_DOMAINS
+        #     ):
+        #         links.append(href)
+        #     else:
+        #         logger.debug(f"Skipping URL from non-accepted domain: {domain}")
+        #
+        # except Exception as e:
+        #     logger.debug(f"Error parsing URL {href}: {e}")
+        #     continue
 
-            if any(
-                domain.endswith(accepted_domain)
-                for accepted_domain in CommonVariables.ACCEPTED_DOMAINS
-            ):
-                links.append(href)
-            else:
-                logger.debug(f"Skipping URL from non-accepted domain: {domain}")
-
-        except Exception as e:
-            logger.debug(f"Error parsing URL {href}: {e}")
-            continue
-
+        links.append(href)
     logger.debug(f"Found {len(links)} valid links from accepted domains")
     return links
 
