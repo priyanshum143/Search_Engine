@@ -14,7 +14,9 @@ class QueryParser:
     """
 
     @staticmethod
-    async def generate_response_for_query(query: str, inverted_index: dict, doc_store: dict) -> list[dict]:
+    async def generate_response_for_query(
+        query: str, inverted_index: dict, doc_store: dict
+    ) -> list[dict]:
         """
         This method will prepare a response for the user's query
 
@@ -47,7 +49,6 @@ class QueryParser:
             for doc_id, score in token_result.items():
                 doc_scores[doc_id] += score
 
-
         # ------------------------------------
         # 2) Intersection of documents (AND)
         # ------------------------------------
@@ -58,8 +59,9 @@ class QueryParser:
             common_set = set()
 
         # Order common docs by total score descending for deterministic ranking
-        common_docs_ordered = sorted(common_set, key=lambda d: doc_scores.get(d, 0), reverse=True)
-
+        common_docs_ordered = sorted(
+            common_set, key=lambda d: doc_scores.get(d, 0), reverse=True
+        )
 
         # ------------------------------------
         # 3) Backfill with top-scoring OR results
@@ -76,7 +78,9 @@ class QueryParser:
             required_docs = resp_size - len(selected_doc_ids)
 
             # sort all docs by score descending
-            sorted_docs_by_score = sorted(doc_scores.items(), key=lambda it: it[1], reverse=True)
+            sorted_docs_by_score = sorted(
+                doc_scores.items(), key=lambda it: it[1], reverse=True
+            )
 
             for doc_id, _score in sorted_docs_by_score:
                 if doc_id in selected_doc_ids:
@@ -88,7 +92,6 @@ class QueryParser:
                 if required_docs == 0:
                     break
 
-
         # ------------------------------------
         # 4) Build result objects from doc_store
         # ------------------------------------
@@ -99,10 +102,12 @@ class QueryParser:
             if not meta:
                 continue
 
-            results.append({
-                "doc_id": doc_id,
-                "url": meta.get("url", ""),
-                "title": meta.get("title", "[COULD NOT FIND TITLE]"),
-            })
+            results.append(
+                {
+                    "doc_id": doc_id,
+                    "url": meta.get("url", ""),
+                    "title": meta.get("title", "[COULD NOT FIND TITLE]"),
+                }
+            )
 
         return results

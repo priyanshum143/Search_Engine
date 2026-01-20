@@ -39,7 +39,9 @@ async def main():
                 continue
 
             logger.info(f"Got the query [{query}], Looking for appropriate response")
-            result = await QueryParser.generate_response_for_query(query, indexer.inverted_index, indexer.doc_store)
+            result = await QueryParser.generate_response_for_query(
+                query, indexer.inverted_index, indexer.doc_store
+            )
             if not result:
                 print("\nNo results found.\n")
             else:
