@@ -12,7 +12,7 @@ class CommonVariables:
     """
 
     SEED_URLS = [
-        "https://en.wikipedia.org/wiki/Main_Page",
+        "https://github.com/priyanshum143",
     ]
     MAX_LIMIT = 10000
     BATCH_SIZE = 100
