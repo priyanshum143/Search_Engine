@@ -6,8 +6,8 @@ import asyncio
 
 from src.search_engine.crawler import WebCrawler
 from src.search_engine.indexer import Indexer
+from src.search_engine.query_response import QueryParser
 from src.search_engine.utils.loggers import get_logger
-from src.search_engine.utils.string_utils import tokenize_content_into_list_of_words
 
 crawler = WebCrawler()
 indexer = Indexer()
@@ -38,10 +38,17 @@ async def main():
             if not query:
                 continue
 
-            tokens = tokenize_content_into_list_of_words(query)
-            logger.info(f"Got the query [{tokens}], Looking for appropriate response")
-            for token in tokens:
-                logger.info(f"{token} -> {indexer.inverted_index.get(token, {})}")
+            logger.info(f"Got the query [{query}], Looking for appropriate response")
+            result = await QueryParser.generate_response_for_query(
+                query, indexer.inverted_index, indexer.doc_store
+            )
+            if not result:
+                print("\nNo results found.\n")
+            else:
+                print("\nSearch Results:\n")
+                for i, doc in enumerate(result, 1):
+                    print(f"{i}. {doc.get('title', '[NO TITLE]')}")
+                    print(f"   URL: {doc.get('url', '')}\n")
 
     except KeyboardInterrupt:
         logger.info("Shutdown signal received...")

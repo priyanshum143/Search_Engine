@@ -174,12 +174,13 @@ class WebCrawler:
             f.write(json.dumps(asdict(page_model), ensure_ascii=False) + "\n")
             f.flush()
 
-    async def _add_urls_in_queue(self, urls: List[str]) -> None:
+    async def _add_urls_in_queue(self, urls: List[str], source_url: str = None) -> None:
         """
         This method will check the queue capacity and accordingly will add the given URLs in the queue
 
         Args:
             urls: List of URLs needs to be added
+            source_url: source url of these links
 
         Returns:
             None
@@ -204,7 +205,7 @@ class WebCrawler:
         # Add URLs to queue
         added_count = 0
         for url in urls[:urls_to_add]:
-            normalized = normalize_url(url)
+            normalized = normalize_url(url, source_url=source_url)
             if normalized not in self.visited_urls:
                 await self.url_frontier.put(normalized)
                 added_count += 1
@@ -255,11 +256,12 @@ class WebCrawler:
                         await self._write_page_to_jsonl(page_model)
 
                         # Adding outgoing URLs from the above page model in url frontier
+                        final_url = page_model.final_url
                         links = page_model.links
                         logger.debug(
                             f"Adding links found from above page [{links}] in queue"
                         )
-                        await self._add_urls_in_queue(links)
+                        await self._add_urls_in_queue(links, final_url)
 
                 logger.debug(f"=== ITERATION {iteration} END ===\n")
 

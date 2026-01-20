@@ -12,7 +12,7 @@ class CommonVariables:
     """
 
     SEED_URLS = [
-        "https://en.wikipedia.org/wiki/Main_Page",
+        "https://github.com/priyanshum143",
     ]
     MAX_LIMIT = 10000
     BATCH_SIZE = 100
@@ -72,6 +72,7 @@ class CommonVariables:
         "at",
     ]
     TOKEN_PATTERN = re.compile(r"\b[a-zA-Z0-9]+\b")
+    RESPONSE_SIZE = 10
 
     ROOT_DIR = Path(__file__).parent.parent.parent.parent
     JSONL_FILE_PATH = ROOT_DIR / "src" / "search_engine" / "data" / "PageModel.jsonl"
