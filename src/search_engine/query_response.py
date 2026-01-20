@@ -40,7 +40,7 @@ class QueryParser:
 
             token_result = inverted_index.get(token, {})
             if not token_result:
-                doc_sets.append(set())
+                # doc_sets.append(set())
                 continue
 
             doc_sets.append(set(token_result.keys()))
