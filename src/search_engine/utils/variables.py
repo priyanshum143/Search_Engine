@@ -70,9 +70,14 @@ class CommonVariables:
         "them",
         "as",
         "at",
+        "you",
+        "me",
+        "we",
+        "us",
     ]
     TOKEN_PATTERN = re.compile(r"\b[a-zA-Z0-9]+\b")
     RESPONSE_SIZE = 10
+    TOP_K_PER_TERM = 50
 
     ROOT_DIR = Path(__file__).parent.parent.parent.parent
     JSONL_FILE_PATH = ROOT_DIR / "src" / "search_engine" / "data" / "PageModel.jsonl"
