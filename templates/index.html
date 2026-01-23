@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Mini Search Engine</title>
+      <style>
+         body { font-family: system-ui, Arial; margin: 0; background: #f6f7fb; }
+         .wrap { max-width: 900px; margin: 40px auto; padding: 0 16px; }
+         .card { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); }
+         h1 { margin: 0 0 14px; font-size: 22px; }
+         .row { display: flex; gap: 10px; }
+         input[type="text"] {
+         flex: 1;
+         padding: 12px 14px;
+         border-radius: 10px;
+         border: 1px solid #d7dbe7;
+         outline: none;
+         font-size: 15px;
+         }
+         button {
+         padding: 12px 16px;
+         border: 0;
+         border-radius: 10px;
+         cursor: pointer;
+         font-weight: 600;
+         }
+         button:disabled { opacity: 0.6; cursor: not-allowed; }
+         .meta { margin-top: 10px; font-size: 13px; color: #586174; }
+         .results { margin-top: 18px; display: grid; gap: 12px; }
+         .result {
+         background: #fff;
+         border-radius: 14px;
+         padding: 14px 16px;
+         border: 1px solid #edf0f7;
+         }
+         .title { font-size: 16px; font-weight: 700; margin: 0 0 6px; }
+         .title a { color: #1a1f2e; text-decoration: none; }
+         .title a:hover { text-decoration: underline; }
+         .url { font-size: 13px; color: #2f7d32; word-break: break-all; }
+         .docid { font-size: 12px; color: #6b7280; margin-top: 6px; }
+         .status { margin-top: 12px; font-size: 14px; }
+         .error { color: #b42318; }
+         .loading { color: #475467; }
+         .footer { margin-top: 14px; font-size: 12px; color: #7a8499; }
+         kbd { background:#eef1f7; padding:2px 6px; border-radius:6px; border:1px solid #dde2ef; }
+      </style>
+   </head>
+
+   <body>
+      <div class="wrap">
+         <div class="card">
+            <h1>Mini Search Engine</h1>
+            <div class="row">
+               <input
+                  id="q"
+                  type="text"
+                  placeholder="Search…"
+                  autocomplete="off"
+                  />
+               <button id="btn">Search</button>
+            </div>
+            <div class="meta">
+               Tip: press <kbd>Enter</kbd> to search.
+            </div>
+            <div id="status" class="status"></div>
+            <div id="results" class="results"></div>
+            <div class="footer">
+               Backend endpoint expected: <code>/search?q=...</code>
+            </div>
+         </div>
+      </div>
+
+      <script>
+         const input = document.getElementById("q");
+         const btn = document.getElementById("btn");
+         const resultsEl = document.getElementById("results");
+         const statusEl = document.getElementById("status");
+
+         function setLoading(isLoading) {
+           btn.disabled = isLoading;
+           input.disabled = isLoading;
+           statusEl.className = "status " + (isLoading ? "loading" : "");
+           statusEl.textContent = isLoading ? "Loading…" : "";
+         }
+
+         function setError(msg) {
+           statusEl.className = "status error";
+           statusEl.textContent = msg;
+         }
+
+         function renderResults(items) {
+           resultsEl.innerHTML = "";
+           if (!items || items.length === 0) {
+             statusEl.className = "status";
+             statusEl.textContent = "No results found.";
+             return;
+           }
+
+           statusEl.className = "status";
+           statusEl.textContent = `Showing ${items.length} result(s).`;
+
+           for (const item of items) {
+             const title = item.title || "[COULD NOT FIND TITLE]";
+             const url = item.url || "";
+             const docId = item.doc_id ?? "";
+
+             const div = document.createElement("div");
+             div.className = "result";
+             div.innerHTML = `
+               <div class="title">
+                 <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">
+                   ${escapeHtml(title)}
+                 </a>
+               </div>
+               <div class="url">${escapeHtml(url)}</div>
+               <div class="docid">doc_id: ${escapeHtml(String(docId))}</div>
+             `;
+             resultsEl.appendChild(div);
+           }
+         }
+
+         // Basic HTML escaping for safety
+         function escapeHtml(str) {
+           return String(str)
+             .replaceAll("&", "&amp;")
+             .replaceAll("<", "&lt;")
+             .replaceAll(">", "&gt;")
+             .replaceAll('"', "&quot;")
+             .replaceAll("'", "&#039;");
+         }
+
+         async function search() {
+           const q = input.value.trim();
+           resultsEl.innerHTML = "";
+           statusEl.textContent = "";
+
+           if (!q) {
+             setError("Type something to search.");
+             return;
+           }
+
+           setLoading(true);
+           try {
+             const resp = await fetch(`/search?q=${encodeURIComponent(q)}`, {
+               method: "GET",
+               headers: { "Accept": "application/json" },
+             });
+
+             if (!resp.ok) {
+               const text = await resp.text().catch(() => "");
+               throw new Error(`HTTP ${resp.status} ${resp.statusText} ${text}`.trim());
+             }
+
+             const data = await resp.json();
+             renderResults(data);
+           } catch (err) {
+             setError("Search failed: " + (err?.message || String(err)));
+           } finally {
+             setLoading(false);
+           }
+         }
+
+         btn.addEventListener("click", search);
+         input.addEventListener("keydown", (e) => {
+           if (e.key === "Enter") search();
+         });
+      </script>
+   </body>
+</html>
