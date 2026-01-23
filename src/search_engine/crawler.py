@@ -11,7 +11,6 @@ from dataclasses import asdict
 from pathlib import Path
 
 from src.search_engine.models.PageModel import PageModel
-
 from src.search_engine.utils.variables import CommonVariables
 from src.search_engine.utils.loggers import get_logger
 from src.search_engine.utils.string_utils import normalize_url, generate_content_hash
@@ -32,11 +31,15 @@ class WebCrawler:
     """
 
     def __init__(self) -> None:
+        """
+        Constructor for our crawler
+        """
+
         # Initialising some variables which we will need for crawling
         self.async_rest_client = httpx.AsyncClient(
             follow_redirects=True,
             headers=CommonVariables.HEADERS,
-            timeout=10,
+            timeout=CommonVariables.TIMEOUT,
         )
         self.visited_urls = set()
         self.page_model_frontier = asyncio.Queue(maxsize=CommonVariables.MAX_LIMIT)
@@ -81,6 +84,7 @@ class WebCrawler:
     async def _parse_response_and_make_page_model(
         self, response: httpx.Response
     ) -> PageModel | None:
+
         """
         This method will parse the http responses and extract useful information
         and will make a page model for each page
@@ -227,6 +231,7 @@ class WebCrawler:
         """
         This method is main method to start our crawler
         """
+
         iteration = 0
 
         try:

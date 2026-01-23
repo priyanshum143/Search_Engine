@@ -26,6 +26,10 @@ class Indexer:
     """
 
     def __init__(self):
+        """
+        Constructor for our indexer
+        """
+
         self.inverted_index: dict[str, dict[str, int]] = defaultdict(
             lambda: defaultdict(int)
         )
