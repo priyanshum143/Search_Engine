@@ -85,7 +85,9 @@ class QueryParser:
                         doc_scores[doc_id] += s
 
             # rank AND results
-            common_docs_ordered = sorted(common_set, key=lambda d: doc_scores.get(d, 0), reverse=True)
+            common_docs_ordered = sorted(
+                common_set, key=lambda d: doc_scores.get(d, 0), reverse=True
+            )
             for doc_id in common_docs_ordered:
                 if len(selected_doc_ids) >= resp_size:
                     break
@@ -108,7 +110,11 @@ class QueryParser:
                         candidates = posting.items()
                     else:
                         # faster to use heapq.nlargest on dict.items()
-                        candidates = heapq.nlargest(CommonVariables.TOP_K_PER_TERM, posting.items(), key=lambda it: it[1])
+                        candidates = heapq.nlargest(
+                            CommonVariables.TOP_K_PER_TERM,
+                            posting.items(),
+                            key=lambda it: it[1],
+                        )
                     for doc_id, s in candidates:
                         if doc_id in selected_doc_ids_set:
                             continue
@@ -125,7 +131,9 @@ class QueryParser:
 
                     # pick top (remaining_needed) docs from doc_scores
                     if doc_scores:
-                        top_or = heapq.nlargest(remaining_needed, doc_scores.items(), key=lambda it: it[1])
+                        top_or = heapq.nlargest(
+                            remaining_needed, doc_scores.items(), key=lambda it: it[1]
+                        )
                         for doc_id, _score in top_or:
                             if doc_id in selected_doc_ids_set:
                                 continue
@@ -138,12 +146,18 @@ class QueryParser:
                 if len(posting) <= CommonVariables.TOP_K_PER_TERM:
                     candidates = posting.items()
                 else:
-                    candidates = heapq.nlargest(CommonVariables.TOP_K_PER_TERM, posting.items(), key=lambda it: it[1])
+                    candidates = heapq.nlargest(
+                        CommonVariables.TOP_K_PER_TERM,
+                        posting.items(),
+                        key=lambda it: it[1],
+                    )
                 for doc_id, s in candidates:
                     doc_scores[doc_id] += s
 
             # pick top resp_size docs
-            top_docs = heapq.nlargest(resp_size, doc_scores.items(), key=lambda it: it[1])
+            top_docs = heapq.nlargest(
+                resp_size, doc_scores.items(), key=lambda it: it[1]
+            )
             for doc_id, _score in top_docs:
                 selected_doc_ids.append(doc_id)
                 selected_doc_ids_set.add(doc_id)
@@ -154,10 +168,12 @@ class QueryParser:
             meta = doc_store.get(doc_id)
             if not meta:
                 continue
-            results.append({
-                "doc_id": doc_id,
-                "url": meta.get("url", ""),
-                "title": meta.get("title", "[COULD NOT FIND TITLE]"),
-            })
+            results.append(
+                {
+                    "doc_id": doc_id,
+                    "url": meta.get("url", ""),
+                    "title": meta.get("title", "[COULD NOT FIND TITLE]"),
+                }
+            )
 
         return results
